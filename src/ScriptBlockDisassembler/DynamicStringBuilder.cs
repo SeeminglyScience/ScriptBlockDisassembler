@@ -1,4 +1,6 @@
+using System;
 using System.Dynamic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Management.Automation.Language;
 using System.Runtime.CompilerServices;
