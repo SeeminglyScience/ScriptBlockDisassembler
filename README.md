@@ -24,7 +24,7 @@ Install-Module ScriptBlockDisassembly -Scope CurrentUser -Force
 
 ## Why
 
-Ever try to read `Compiler.cs` in PowerShell/PowerShell? It's doable, but tedious. Especially for more complex issues it'd be nice to just get a readable version of the final expression tree.
+Ever try to read [`Compiler.cs`][compiler] in [PowerShell/PowerShell][powershell]? It's doable, but tedious. Especially for more complex issues it'd be nice to just get a readable version of the final expression tree.
 
 So I wrote this. It forces the `ScriptBlock` to be compiled, and then digs into it with reflection to find the LINQ expression tree it generated. Then runs it through [ReadableExpressions][readable] with some PowerShell specific customizations and boom we got something much easier to understand.
 
@@ -106,4 +106,25 @@ binder to recreate an approximation of it's construction.
 
 Also most of the API's called in the disassemblied result are non-public.
 
+Also LINQ expression trees let you do things like fit a whole block of statements into a single expression.
+
+## Optimized vs unoptimized
+
+There are two modes for the compiler, optimized and unoptimized. By default this command will return the optimized version, but the `-Unoptimized` switch can be specified to change that.
+
+Here are some common reasons the compiler will naturally enter the unoptimized mode:
+
+1. Dot sourcing
+2. Static analysis found the use of a `*-Variable` command
+3. Static analysis found the use of *any* debugger command
+4. Static analysis found references to any `AllScope` variables
+
+Optimization mostly affects how access of local variables are generated.
+
+## Why doesn't this work on PowerShell versions older than 7.2
+
+I just didn't see the need and it would require me to make sure all the private fields for every binder are still the same. If you need this please open an issue.
+
 [readable]: https://github.com/agileobjects/ReadableExpressions "agileobjects/ReadableExpressions"
+[compiler]: https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/parser/Compiler.cs "Compiler.cs"
+[powershell]: https://github.com/PowerShell/PowerShell "PowerShell/PowerShell"
