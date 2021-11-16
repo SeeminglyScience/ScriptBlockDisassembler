@@ -19,7 +19,7 @@
 ## Install
 
 ```powershell
-Install-Module ScriptBlockDisassembly -Scope CurrentUser -Force
+Install-Module ScriptBlockDisassembler -Scope CurrentUser -Force
 ```
 
 ## Why
