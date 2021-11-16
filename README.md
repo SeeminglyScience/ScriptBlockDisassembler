@@ -94,7 +94,7 @@ and will certainly break eventually. Maybe even with a minor release.
 
 This module should only really ever be used interactively for troubleshooting or exploration.
 
-The code is also bad. Please don't use any of it as an example of what you should do.
+The code is also far from optimal in a lot of places. Please don't use it as an example of what you should do.
 
 ## Can I compile the C#?
 
