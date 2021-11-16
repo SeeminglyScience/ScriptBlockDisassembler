@@ -1,15 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace ScriptBlockDisassembler
+namespace ScriptBlockDisassembler;
+
+internal static class Ensure
 {
-    internal static class Ensure
+    public static void UnsupportedNotNull([NotNull] object? value, string fieldName)
     {
-        public static void UnsupportedNotNull([NotNull] object? value, string fieldName)
+        if (value is null)
         {
-            if (value is null)
-            {
-                Throw.SomethingChanged($"{fieldName} is not null");
-            }
+            Throw.SomethingChanged($"{fieldName} is not null");
         }
     }
 }

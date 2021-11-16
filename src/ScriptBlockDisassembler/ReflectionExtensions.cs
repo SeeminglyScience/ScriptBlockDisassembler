@@ -4,35 +4,6 @@ namespace ScriptBlockDisassembler
 {
     internal static class ReflectionExtensions
     {
-        private static BindingFlags Flags(
-            bool isPublic = false,
-            bool isPrivate = false,
-            bool isStatic = false,
-            bool isInstance = false)
-        {
-            return true switch
-            {
-                _ when isStatic => true switch
-                {
-                    _ when isPublic => BindingFlags.Static | BindingFlags.Public,
-                    _ when isPrivate => BindingFlags.Static | BindingFlags.NonPublic,
-                    _ => BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
-                },
-                _ when isInstance => true switch
-                {
-                    _ when isPublic => BindingFlags.Instance | BindingFlags.Public,
-                    _ when isPrivate => BindingFlags.Instance | BindingFlags.NonPublic,
-                    _ => BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                },
-                _ => true switch
-                {
-                    _ when isPublic => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public,
-                    _ when isPrivate => BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic,
-                    _ => BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                }
-            };
-        }
-
         public static T? AccessProperty<T>(this object obj, string name, bool isPublic = false, bool isPrivate = false)
         {
             return (T?)obj.AccessProperty(name, isPublic, isPrivate);
@@ -46,7 +17,7 @@ namespace ScriptBlockDisassembler
         {
             PropertyInfo? property = obj.GetType().GetProperty(
                 name,
-                Flags(isInstance: true, isPublic: isPublic, isPrivate: isPrivate));
+                Flags.Get(isInstance: true, isPublic: isPublic, isPrivate: isPrivate));
             if (property is null)
             {
                 Throw.SomethingChanged($"property '{obj.GetType().FullName}.{name}'");
@@ -68,7 +39,7 @@ namespace ScriptBlockDisassembler
         {
             FieldInfo? field = obj.GetType().GetField(
                 name,
-                Flags(isInstance: true, isPublic: isPublic, isPrivate: isPrivate));
+                Flags.Get(isInstance: true, isPublic: isPublic, isPrivate: isPrivate));
             if (field is null)
             {
                 Throw.SomethingChanged($"field '{obj.GetType().FullName}.{name}'");
@@ -85,7 +56,7 @@ namespace ScriptBlockDisassembler
             bool isPublic = false,
             bool isPrivate = false)
         {
-            BindingFlags flags = Flags(isStatic: true, isPublic: isPublic, isPrivate: isPrivate);
+            BindingFlags flags = Flags.Get(isStatic: true, isPublic: isPublic, isPrivate: isPrivate);
             MethodInfo? method;
             if (argType is not null)
             {
@@ -123,7 +94,7 @@ namespace ScriptBlockDisassembler
             bool isPublic = false,
             bool isPrivate = false)
         {
-            BindingFlags flags = Flags(isInstance: true, isPublic: isPublic, isPrivate: isPrivate);
+            BindingFlags flags = Flags.Get(isInstance: true, isPublic: isPublic, isPrivate: isPrivate);
             MethodInfo? method;
             if (argType is not null)
             {
