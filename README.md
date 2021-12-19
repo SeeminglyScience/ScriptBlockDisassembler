@@ -87,6 +87,61 @@ You may want this if:
 }
 ```
 
+## How do I read it?
+
+Each named block has it's own delegate (of type `Action<FunctionContext>`) that will be disassembled. So at minimum
+each block will look like this:
+
+```csharp
+// ScriptBlock.EndBlock
+(FunctionContext context) =>
+{
+}
+```
+
+Any time you see a static method called from the class `Fake`, that is a representation of something
+not directly translatable to C#.
+
+### Fake.Dynamic
+
+Any time you see `Fake.Dynamic` you should imagine it as having this signature:
+
+```csharp
+class Fake
+{
+    public static TDelegate Dynamic<TDelegate>(DynamicMetaObjectBinder binder);
+}
+```
+
+So a call to `Fake.Dynamic<Action<int>>(PSPipeWriterBinder.Get())(10)` would get a `Action<int>` from
+`Fake.Dynamic` using the `PSPipeWriterBinder` call site binder and then invoke it.
+
+In reality the call looks roughly more like:
+
+```csharp
+closure.Constants[0].Target.Invoke(closure.Constants[0], closure.Constants[1], 10);
+```
+
+But that doesn't really tell you anything helpful without examining the constants directly.
+
+### Fake.Const
+
+This represents the retrieval of a constant that is embedded in the delegate.
+
+```csharp
+Fake.Const<CommandBaseAst>(typeof(CommandExpressionAst), "10");
+//             |                      |                    |
+//             |                      |                    -- ToString value
+//             |                      -- Optional runtime type if different than static type
+//             -- What the constant is statically typed as
+```
+
+## What about binders? How can I read those?
+
+I've added the `Format-ExpressionTree` command to help with that. You're currently
+on your own as far as obtaining the expression (I recommend using [ImpliedReflection][ImpliedReflection]),
+but once you've obtained one you can pipe it to that command.
+
 ## Should I use this in a production environment?
 
 No. I don't know why you would, but don't. It relies heavily on implementation detail
