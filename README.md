@@ -185,3 +185,4 @@ I just didn't see the need and it would require me to make sure all the private 
 [readable]: https://github.com/agileobjects/ReadableExpressions "agileobjects/ReadableExpressions"
 [compiler]: https://github.com/PowerShell/PowerShell/blob/master/src/System.Management.Automation/engine/parser/Compiler.cs "Compiler.cs"
 [powershell]: https://github.com/PowerShell/PowerShell "PowerShell/PowerShell"
+[ImpliedReflection]: https://github.com/SeeminglyScience/ImpliedReflection "SeeminglyScience/ImpliedReflection"
