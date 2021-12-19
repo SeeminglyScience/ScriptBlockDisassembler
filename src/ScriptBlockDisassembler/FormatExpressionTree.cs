@@ -7,7 +7,8 @@ namespace ScriptBlockDisassembler;
 [Cmdlet(VerbsCommon.Format, "ExpressionTree")]
 public sealed class FormatExpressionTree : PSCmdlet
 {
-    [Parameter(ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)]
+    [Parameter(Mandatory = true, ValueFromPipeline = true, ValueFromPipelineByPropertyName = true)]
+    [ValidateNotNull]
     public Expression? Expression { get; set; }
 
     protected override void ProcessRecord()
