@@ -1,8 +1,9 @@
 using System;
 using System.Linq.Expressions;
+using System.Management.Automation;
+using System.Text.RegularExpressions;
 using AgileObjects.ReadableExpressions;
 using AgileObjects.ReadableExpressions.Translations;
-using System.Management.Automation;
 
 namespace ScriptBlockDisassembler;
 
@@ -18,14 +19,36 @@ internal class PSExpressionTranslation : ExpressionTranslation
     {
     }
 
-    public static string Translate(ScriptBlock scriptBlock, string block, bool optimized)
+    public static string Translate(
+        ScriptBlock scriptBlock,
+        string block,
+        DisassemblerOptions options)
     {
+        Expression? lambda = GetExpressionForScriptBlock(
+            scriptBlock,
+            block,
+            options,
+            out string propertyName);
+
+        return string.Concat(
+            $"// ScriptBlock.{propertyName}",
+            Environment.NewLine,
+            Translate(lambda, options));
+    }
+
+    internal static Expression GetExpressionForScriptBlock(
+        ScriptBlock scriptBlock,
+        string block,
+        DisassemblerOptions options,
+        out string propertyName)
+    {
+        bool optimized = !options.Unoptimized;
         scriptBlock.InvokePrivateMethod(
             "Compile",
             new object[] { optimized },
             new[] { typeof(bool) });
 
-        string propertyName = block.ToLowerInvariant() switch
+        propertyName = block.ToLowerInvariant() switch
         {
             "begin" when optimized => "BeginBlock",
             "begin" when !optimized => "UnoptimizedBeginBlock",
@@ -33,6 +56,10 @@ internal class PSExpressionTranslation : ExpressionTranslation
             "process" when !optimized => "UnoptimizedProcessBlock",
             "end" when optimized => "EndBlock",
             "end" when !optimized => "UnoptimizedEndBlock",
+            "dynamicparam" when optimized => "DynamicParamBlock",
+            "dynamicparam" when !optimized => "UnoptimizedDynamicParamBlock",
+            "clean" when optimized => "CleanBlock",
+            "clean" when !optimized => "UnoptimizedCleanBlock",
             _ => throw new ArgumentOutOfRangeException(nameof(block)),
         };
 
@@ -45,20 +72,25 @@ internal class PSExpressionTranslation : ExpressionTranslation
 
         Expression? lambda = delegateCreator.AccessField<Expression>("_lambda");
         Ensure.UnsupportedNotNull(lambda, "_lambda");
-        return string.Concat(
-            $"// ScriptBlock.{propertyName}",
-            Environment.NewLine,
-            Translate(lambda));
+        return lambda;
     }
 
-    public static string Translate(Expression expression)
+    public static string Translate(Expression expression, DisassemblerOptions options)
     {
-        Expression reduced = new RecursiveReduce().Visit(expression);
+        Expression reduced = new RecursiveReduce(options).Visit(expression);
         PSExpressionTranslation translator = new(
             reduced,
             (TranslationSettings)PSTranslationSettings.Default);
 
-        return translator.GetTranslation();
+        if (!options.IgnoreStartupAndTeardown)
+        {
+            return translator.GetTranslation();
+        }
+
+        return Regex.Replace(
+            translator.GetTranslation(),
+            @"MutableTuple<.+?> locals;\r?\n",
+            string.Empty);
     }
 
     public override ITranslation GetTranslationFor(Expression expression)
@@ -66,6 +98,11 @@ internal class PSExpressionTranslation : ExpressionTranslation
         if (expression is DynamicExpression dynamic)
         {
             return DynamicTranslation.GetTranslationFor(dynamic, this);
+        }
+
+        if (expression is TypeBinaryExpression typeBinary)
+        {
+            return TypeIsTranslation.GetTranslationFor(typeBinary, this);
         }
 
         return base.GetTranslationFor(expression);
