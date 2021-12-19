@@ -17,7 +17,6 @@ public class PSTranslationSettings : TranslationSettings
                 .ShowQuotedLambdaComments
                 .UseExplicitTypeNames
                 .UseExplicitGenericParameters
-                .ShowCapturedValues
                 .IndentUsing("    ")
                 .TranslateConstantsUsing(
                     (type, value) => ConstToString(type, value));
@@ -37,6 +36,7 @@ public class PSTranslationSettings : TranslationSettings
             return text.Append("null");
         }
 
+        Type actualType = value.GetType();
         if (value is PSObject pso && pso == AutomationNull.Value)
         {
             return text.Append("AutomationNull.Value");
@@ -65,6 +65,11 @@ public class PSTranslationSettings : TranslationSettings
             }
 
             return text.Append($"\"{value}\"");
+        }
+
+        if (actualType.IsEnum)
+        {
+            return text.AppendEnum(value);
         }
 
         text.Append("Fake.Const<")
@@ -96,7 +101,12 @@ public class PSTranslationSettings : TranslationSettings
             return text.Append(")");
         }
 
-        if (value.GetType().Name.Equals("ScriptBlockExpressionWrapper"))
+        if (actualType != type)
+        {
+            text.Append("typeof(").AppendTypeName(value.GetType()).Append("), ");
+        }
+
+        if (actualType.Name.Equals("ScriptBlockExpressionWrapper"))
         {
             return text.Append($"\"{value.AccessField("_ast")}\")");
         }

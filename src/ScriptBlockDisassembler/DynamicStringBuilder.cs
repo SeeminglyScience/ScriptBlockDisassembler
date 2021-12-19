@@ -188,6 +188,11 @@ internal class DynamicStringBuilder
             Append("methodTargetType: null");
         }
 
+        if (parameterTypes is null)
+        {
+            return Append(", parameterTypes: null)");
+        }
+
         Append(", new Type[] { ");
         if (parameterTypes.Length is not 0)
         {
@@ -201,7 +206,12 @@ internal class DynamicStringBuilder
         return Append(" })");
     }
 
-    private DynamicStringBuilder AppendEnum(string enumName, object enumValue)
+    internal DynamicStringBuilder AppendEnum(object enumValue)
+    {
+        return AppendEnum(enumValue.GetType().Name, enumValue);
+    }
+
+    internal DynamicStringBuilder AppendEnum(string enumName, object enumValue)
     {
         string value = enumValue.ToString()!;
         if (value.Contains(','))
@@ -262,11 +272,11 @@ internal class DynamicStringBuilder
         if (binderName is "PSInvokeDynamicMemberBinder")
         {
             return Append(binderName).Append(".Get(")
-                .AppendCallInfo(binder.AccessProperty<CallInfo>("CallInfo")).Append(", ")
-                .AppendTypeDefinitionAst(binder.AccessField<Type>("_classScope"))
-                .AppendBool("static", binder.AccessField<bool>("_static"))
-                .AppendBool("propertySetter", binder.AccessField<bool>("_propertySetter"))
-                .AppendInvocationConstraints(binder.AccessField("_invocationConstraints"))
+                .AppendCallInfo(binder.AccessField<CallInfo>("_callInfo")).Append(", ")
+                .AppendTypeDefinitionAst(binder.AccessField<Type>("_classScope")).Append(", ")
+                .AppendBool("static", binder.AccessField<bool>("_static")).Append(", ")
+                .AppendBool("propertySetter", binder.AccessField<bool>("_propertySetter")).Append(", ")
+                .AppendInvocationConstraints(binder.AccessField("_constraints"))
                 .Append(')');
         }
 
