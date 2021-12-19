@@ -12,7 +12,7 @@
 RootModule = 'ScriptBlockDisassembler.dll'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '1.1.0'
 
 # ID used to uniquely identify this module
 GUID = '32c179e6-6ee8-4ce5-9feb-4962fdb65bb9'
@@ -36,7 +36,7 @@ PowerShellVersion = '7.2'
 FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = 'Get-ScriptBlockDisassembly'
+CmdletsToExport = 'Get-ScriptBlockDisassembly', 'Format-ExpressionTree'
 
 # Variables to export from this module
 VariablesToExport = @()
